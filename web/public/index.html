@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Ran-chat</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- 메인 레이아웃: 좌우로 배치 -->
+  <div style="display: flex; height: 100vh;">
+
+    <!-- 💬 채팅 영역 -->
+    <div style="flex: 3; padding: 20px; border-right: 1px solid #ccc; overflow: hidden; display: flex; flex-direction: column;">
+      <div id="header-bar">
+        <h1 id="chat-mode-title">💬 Free chat</h1>
+        <div id="status-message" style="display: none;"></div>
+      </div>
+
+      <div id="top-bar" style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="flex: 1">
+          Users in free chat: <span id="user-count">0</span>
+        </div>
+        <p id="my-nickname" style="text-align: right; margin: 0 10px 10px 0; font-weight: bold;"></p>
+      </div>
+
+      <div class="chat-container" id="chat-container">
+        <ul id="chat"></ul>
+      </div>
+
+      <div style="height:10px;"></div>
+
+      <div id="input-container">
+        <input id="msg" placeholder="Please enter your message" oninput="checkInput(this)" maxlength="50" disabled />
+        <button id="sendBtn" disabled>Send</button>
+      </div>
+
+      <div id="button-container" style="margin-top: 10px;">
+        <button id="random-btn" class="btn-3D-effect">🎲 Random Chat</button>
+        <button id="leave-btn" class="btn-3D-effect" style="display: none;">Leave Random Chat</button>       
+      </div>
+    </div>
+
+    <!-- 🧾 게시판 영역 (iframe) -->
+    <iframe 
+        src="/board.html" 
+        style="flex: 7; border: none; height: 100vh; width: 100%;">
+    </iframe>
+
+  </div>
+
+  <!-- 소켓 스크립트 -->
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script src="/script.js"></script>
+</body>
+</html>

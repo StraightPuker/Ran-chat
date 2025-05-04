@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Board</title>
+  <link rel="stylesheet" href="/board.css"/>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+</head>
+<body>
+  <div id="community-wrapper">
+    <!-- 뜨고있는 스레드 영역 -->
+    <section id="fixed-posts">
+      <h2>hot posts</h2>
+      <ul id="hot-post-list"></ul>
+    </section>
+
+    <!-- 최신 스레드 목록 -->
+    <section id="latest-posts">
+      <h2>Latest posts</h2>
+      <ul id="post-list"></ul>
+    </section>
+
+    <!-- 스레드 작성 폼 -->
+    <form id="post-form" style="display: none;">
+      <input id="post-title" placeholder="Enter a title" maxlength="100" />
+      <textarea id="post-content" placeholder="Enter content" maxlength="1000"></textarea>
+      <div class="form-buttons">
+        <button type="submit">Submit</button>
+        <button type="button" id="cancel-post">Cancel</button>
+      </div>
+    </form>
+
+    <!-- 하단 고정 바 -->
+    <div id="bottom-bar">
+      <button id="write-post-btn" class="btn-3D-effect">Create New Post</button>
+      <div id="ad-box">[Ad Placeholder]</div>
+    </div>
+  </div>
+
+  <script src="/board.js"></script>
+</body>
+</html>

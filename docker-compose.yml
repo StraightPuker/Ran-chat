@@ -1,0 +1,37 @@
+services:
+  mongo:
+    image: straightpuker/chat-app-mongo
+    container_name: mongo
+    ports:
+      - "${MONGO_PORT}:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
+
+  app:
+    image: straightpuker/chat-app-server
+    container_name: app
+    ports:
+      - "${APP_PORT}:3000"
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/${MONGO_INITDB_DATABASE}?authSource=admin
+    restart: always
+
+  web:
+    image: straightpuker/chat-app-web
+    container_name: web
+    ports:
+      - "${WEB_PORT}:80"
+    depends_on:
+      - app
+    restart: always
+
+volumes:
+  mongo-data:
+    driver: local
