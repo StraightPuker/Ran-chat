@@ -3,15 +3,36 @@ const router = express.Router();
 const Post = require('../models/post');
 const Comment = require('../models/comment');
 
+// 게시글 점수 감소 함수
+async function decreasePostScore() {
+  const posts = await Post.find();
+  const now = new Date();
+  
+  for (const post of posts) {
+    const hoursPassed = (now - post.lastScoreUpdate) / (1000 * 60 * 60);
+    if (hoursPassed >= 24) {
+      const newScore = post.score * 0.5;
+      post.score = newScore < 10 ? 0 : newScore;
+      post.lastScoreUpdate = now;
+      await post.save();
+    }
+  }
+}
+
 // 📄 전체 게시글 불러오기
 router.get('/posts', async (req, res) => {
+  await decreasePostScore();
   const posts = await Post.find().sort({ createdAt: -1 });
   res.json(posts);
 });
 
 // 📝 새 게시글 작성
 router.post('/posts', async (req, res) => {
-  const newPost = new Post(req.body);
+  const newPost = new Post({
+    ...req.body,
+    score: 0,
+    lastScoreUpdate: new Date()
+  });
   await newPost.save();
   res.status(201).json(newPost);
 });
@@ -24,9 +45,48 @@ router.get('/comments/:postId', async (req, res) => {
 
 // 💬 댓글 작성
 router.post('/comments', async (req, res) => {
-  const newComment = new Comment(req.body);
+  const post = await Post.findById(req.body.postId);
+  if (!post) {
+    return res.status(404).json({ error: 'Post not found' });
+  }
+
+  // 댓글 번호 계산
+  const commentCount = await Comment.countDocuments({ postId: req.body.postId });
+  const newComment = new Comment({
+    ...req.body,
+    number: commentCount + 1
+  });
   await newComment.save();
+
+  // 게시글 점수 증가
+  post.score += 3;
+  post.lastScoreUpdate = new Date();
+  await post.save();
+
   res.json({ success: true });
+});
+
+// 게시글 조회 시 점수 증가
+router.get('/posts/:id', async (req, res) => {
+  const post = await Post.findById(req.params.id);
+  if (!post) {
+    return res.status(404).json({ error: 'Post not found' });
+  }
+
+  post.score += 2;
+  post.lastScoreUpdate = new Date();
+  await post.save();
+
+  res.json(post);
+});
+
+// Hot Posts 가져오기
+router.get('/hot-posts', async (req, res) => {
+  await decreasePostScore();
+  const hotPosts = await Post.find()
+    .sort({ score: -1 })
+    .limit(10);
+  res.json(hotPosts);
 });
 
 module.exports = router;

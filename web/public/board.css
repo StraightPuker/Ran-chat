@@ -92,10 +92,13 @@ ul {
 
 /* 📦 전체 컨테이너 */
 #community-wrapper {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 32px;
     font-family: 'Pretendard', sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
 /* 게시글 목록 공통 */
@@ -108,10 +111,44 @@ ul {
     margin-bottom: 24px;
 }
 
-#hot-post-list li,
+/* Latest Posts 레이아웃 */
 #post-list li {
-    background: white;
     padding: 16px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid #e1e1e1;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+#post-list li:hover {
+    border-color: #FFD700;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+#post-list .post-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: #1a1a1a;
+}
+
+/* Hot Posts 레이아웃 */
+#hot-post-list {
+    display: flex;
+    gap: 20px;
+}
+
+#hot-post-list ul {
+    flex: 1;
+    padding: 0;
+    margin: 0;
+}
+
+#hot-post-list li {
+    background: white;
+    padding: 12px;
     margin-bottom: 8px;
     border-radius: 8px;
     cursor: pointer;
@@ -119,11 +156,16 @@ ul {
     transition: all 0.2s ease;
 }
 
-#hot-post-list li:hover,
-#post-list li:hover {
+#hot-post-list li:hover {
     border-color: #FFD700;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
     transform: translateY(-1px);
+}
+
+#hot-post-list .post-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #1a1a1a;
 }
 
 /* 하단 영역 */
@@ -179,6 +221,7 @@ ul {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     margin-bottom: 24px;
+    flex: 1;
 }
 
 .post-detail h3 {
