@@ -10,8 +10,8 @@
 
 ## 🌐 배포 주소
 
-📍 https://ran-chat.example.com  
-📁 GitHub: [https://github.com/your-username/ran-chat](https://github.com/your-username/ran-chat)
+📍 http://210.109.54.76/ (현재 도메인 설정 안 되어 있음.) 
+📁 GitHub: [https://github.com/StraightPuker/Ran-chat]
 
 ---
 
