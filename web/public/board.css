@@ -50,7 +50,7 @@ h2::before {
 
 /* 폼 입력 요소 */
 form {
-    margin-top: 12px;
+    margin-top: 15vh;
     background: white;
     padding: 24px;
     border-radius: 12px;
@@ -66,6 +66,11 @@ input, textarea {
     margin-bottom: 16px;
     font-size: 14px;
     transition: all 0.2s ease;
+}
+
+textarea {
+    min-height: 300px;
+    resize: vertical;
 }
 
 input:focus, textarea:focus {
@@ -243,9 +248,19 @@ ul {
 }
 
 .comment-form {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 64px);
+    max-width: 1200px;
     display: flex;
     gap: 8px;
-    margin-top: 16px;
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 100;
 }
 
 .comment-form input {
@@ -256,12 +271,16 @@ ul {
 .comment-form button {
     background: #FFD700;
     color: #1a1a1a;
+    white-space: nowrap;
+    padding: 12px 24px;
+    font-weight: 600;
 }
 
 .comment-list {
     margin-top: 16px;
     padding: 0;
     list-style: none;
+    margin-bottom: 80px;
 }
 
 .comment-list li {
@@ -306,4 +325,21 @@ ul {
     font-size: 14px;
     color: #666;
     line-height: 1.5;
+}
+
+/* 폼 내부 광고 영역 */
+#form-ad-box {
+    margin-top: 24px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-start;
 }

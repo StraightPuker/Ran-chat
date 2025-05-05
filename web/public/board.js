@@ -15,6 +15,64 @@ const commentContent = document.getElementById('comment-content');
 
 let currentPostId = null;
 
+// Socket.IO 클라이언트 연결 - 부모 창의 socket 인스턴스 사용
+const socket = window.parent.socket || window.socket;
+
+// 실시간 게시글 목록 갱신
+socket.on('postsUpdated', (posts) => {
+  // 최신 게시글 목록 갱신
+  postList.innerHTML = '';
+  posts.forEach(post => {
+    const li = document.createElement('li');
+    li.classList.add('post-item');
+    const title = document.createElement('div');
+    title.textContent = post.title;
+    title.classList.add('post-title');
+    li.appendChild(title);
+    li.onclick = () => showPostDetail(post);
+    postList.appendChild(li);
+  });
+});
+
+// 실시간 핫포스트 갱신
+socket.on('hotPostsUpdated', (hotPosts) => {
+  hotPostList.innerHTML = '';
+  const leftList = document.createElement('ul');
+  const rightList = document.createElement('ul');
+  hotPosts.forEach((post, index) => {
+    const li = document.createElement('li');
+    li.classList.add('post-item');
+    const title = document.createElement('div');
+    title.textContent = `${index + 1}. ${post.title}`;
+    title.classList.add('post-title');
+    li.appendChild(title);
+    li.onclick = () => showPostDetail(post);
+    if (index < 5) {
+      leftList.appendChild(li);
+    } else {
+      rightList.appendChild(li);
+    }
+  });
+  hotPostList.appendChild(leftList);
+  hotPostList.appendChild(rightList);
+});
+
+// 실시간 댓글 갱신
+socket.on('commentsUpdated', ({ postId, comments }) => {
+  // 현재 보고 있는 게시글의 댓글만 갱신
+  if (currentPostId && currentPostId === postId) {
+    const commentList = document.querySelector('.comment-list');
+    if (commentList) {
+      commentList.innerHTML = '';
+      comments.forEach(comment => {
+        const li = document.createElement('li');
+        li.textContent = `${comment.number}> ${comment.content}`;
+        commentList.appendChild(li);
+      });
+    }
+  }
+});
+
 // Hot Posts 로드
 async function loadHotPosts() {
   try {
@@ -56,6 +114,7 @@ writePostBtn.addEventListener("click", () => {
   fixedPosts.style.display = "none";
   bottomBar.style.display = "none";
   postForm.style.display = "block";
+  postTitle.focus();
 });
 
 // 취소 버튼 클릭 시 폼 숨김
@@ -128,6 +187,7 @@ postForm.addEventListener('submit', async (e) => {
 
 // 게시글 상세 보기
 async function showPostDetail(post) {
+  currentPostId = post._id;
   // 게시글 조회 시 점수 증가
   await fetch(`/api/posts/${post._id}`);
   
@@ -146,13 +206,6 @@ async function showPostDetail(post) {
   const backBtn = document.createElement('button');
   backBtn.classList.add('back-btn');
   backBtn.textContent = '← Back to List';
-  backBtn.onclick = () => {
-    detailView.remove();
-    document.getElementById('latest-posts').style.display = 'block';
-    document.getElementById('fixed-posts').style.display = 'block';
-    bottomBar.style.display = 'flex';
-    loadHotPosts();
-  };
   
   // 제목과 내용
   const title = document.createElement('h3');
@@ -168,6 +221,7 @@ async function showPostDetail(post) {
   
   const commentForm = document.createElement('form');
   commentForm.classList.add('comment-form');
+  commentForm.id = 'sticky-comment-form';
   commentForm.innerHTML = `
     <input type="text" placeholder="Write a comment..." required>
     <button type="submit">Post Comment</button>
@@ -180,9 +234,20 @@ async function showPostDetail(post) {
   detailView.appendChild(backBtn);
   detailView.appendChild(title);
   detailView.appendChild(content);
-  commentsSection.appendChild(commentForm);
-  commentsSection.appendChild(commentList);
-  detailView.appendChild(commentsSection);
+  detailView.appendChild(commentList);
+  
+  // 댓글 폼을 community-wrapper에 추가
+  document.getElementById('community-wrapper').appendChild(commentForm);
+  
+  // 뒤로가기 버튼 클릭 이벤트
+  backBtn.onclick = () => {
+    detailView.remove();
+    commentForm.remove();
+    document.getElementById('latest-posts').style.display = 'block';
+    document.getElementById('fixed-posts').style.display = 'block';
+    bottomBar.style.display = 'flex';
+    loadHotPosts();
+  };
   
   // 화면에 표시
   document.getElementById('latest-posts').style.display = 'none';
@@ -256,4 +321,10 @@ document.addEventListener('DOMContentLoaded', () => {
   loadHotPosts();
   latestPosts.style.display = "block";
   fixedPosts.style.display = "block";
+  
+  // 기존 댓글 폼이 있다면 제거
+  const existingCommentForm = document.getElementById('sticky-comment-form');
+  if (existingCommentForm) {
+    existingCommentForm.remove();
+  }
 });

@@ -1,37 +1,32 @@
 // const socket = io(`${location.protocol}//${location.hostname}:3000`); // App 서버 주소 (Reverse Proxy 설정 시 변경 가능)
-const socket = io(); 
+
+// 채팅 관련 DOM 요소들
 const input = document.getElementById("msg");
 const btn = document.getElementById("sendBtn");
 const chat = document.getElementById("chat");
 const randomBtn = document.getElementById("random-btn");
 const leaveBtn = document.getElementById("leave-btn");
 const titleEl = document.getElementById("chat-mode-title");
+const userCountEl = document.getElementById("user-count");
+const myNicknameEl = document.getElementById("my-nickname");
+const statusBox = document.getElementById("status-message");
 
 let nickname = null;
 let lastRenderedDate = null;
 let currentRoom = "default"; // 자유 채팅방 기본값
 
-window.addEventListener("DOMContentLoaded", () => {
-  checkInput();
-});
-
-function checkInput() {
-  const isValid = input.value.trim() !== "";
-  btn.disabled = !isValid;
-  btn.classList.toggle("active", isValid);
+// HTML에서 직접 호출되는 함수
+function checkInput(inputElement) {
+  if (!inputElement || !btn) return;
+  btn.disabled = !inputElement.value.trim();
 }
 
 function clearChat() {
+  if (!chat) return;
   while (chat.firstChild) {
     chat.removeChild(chat.firstChild);
   }
 }
-
-btn.addEventListener("click", sendMessage);
-input.addEventListener("input", checkInput);
-input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") sendMessage();
-});
 
 function formatEnglishDate(isoDate) {
   const date = new Date(isoDate);
@@ -40,15 +35,18 @@ function formatEnglishDate(isoDate) {
 }
 
 function sendMessage() {
+  if (!input || !window.socket) return;
   const text = input.value.trim();
   if (!text) return;
 
-  socket.emit("message", { text, room: currentRoom });
+  window.socket.emit("message", { text, room: currentRoom });
   input.value = "";
-  checkInput();
+  checkInput(input);
 }
 
 function addMessage(msg) {
+  if (!chat) return;
+
   const msgDate = msg.date || new Date().toISOString().split("T")[0];
   const time = msg.time || "";
   const user = msg.user || "System";
@@ -85,56 +83,8 @@ function addMessage(msg) {
   scrollToBottom();
 }
 
-// reconnect 이후 기본방이면 히스토리 다시 요청
-socket.on("connect", () => {
-  if (currentRoom === "default") {
-    socket.emit("requestHistory", "default");
-  }
-});
-
-socket.on("setNickname", (name) => {
-  nickname = name;
-  document.getElementById("my-nickname").textContent = `My nickname: ${nickname}`;
-  input.disabled = false;
-  btn.disabled = true;
-  input.focus();
-});
-
-socket.on("loadHistory", (history) => {
-  clearChat();
-  history.forEach(addMessage);
-});
-
-socket.on("message", (msg) => {
-  if (msg.room === currentRoom || (!msg.room && currentRoom === "default")) {
-    addMessage(msg);
-  }
-});
-
-socket.on("userCount", (count) => {
-  document.getElementById("user-count").textContent = `${count}`;
-});
-
-// 랜덤 매칭 요청
-randomBtn.addEventListener("click", () => {
-  socket.emit("join-random");
-  randomBtn.disabled = true; // 매칭 요청 중엔 중복 매칭 요청 방지
-});
-
-// 랜덤 매칭 나가기
-leaveBtn.addEventListener("click", () => {
-  socket.emit("leave-random");
-  currentRoom = "default";
-  lastRenderedDate = null;
-  leaveBtn.style.display = "none";
-  randomBtn.style.display = "inline-block";
-  randomBtn.disabled = false;
-  titleEl.textContent = "💬 Free chat";
-});
-
-const statusBox = document.getElementById("status-message");
-
 function showStatus(msg, duration = 0) {
+  if (!statusBox) return;
   statusBox.textContent = msg;
   statusBox.style.display = "block";
 
@@ -145,28 +95,109 @@ function showStatus(msg, duration = 0) {
   }
 }
 
-// 랜덤 매칭 대기
-socket.on("random-wait", () => {
-  showStatus("🔎 Finding a random chat partner...");
-});
-
-socket.on("random-start", ({ room }) => {
-  showStatus("✅ Match found! Entering the room...");
-  setTimeout(() => {
-    currentRoom = room; // 현재 방 이름 갱신
-    lastRenderedDate = null; // 날짜 초기화!
-
-    randomBtn.disabled = true;
-    leaveBtn.style.display = "inline-block";
-    randomBtn.style.display = "none";
-    
-    statusBox.style.display = "none";
-
-    titleEl.textContent = "💬 Ran-chat";
-  }, 1000); // 들어가기 전 1초 딜레이이
-});
-
 function scrollToBottom() {
   const container = document.getElementById("chat-container");
+  if (!container) return;
   container.scrollTop = container.scrollHeight;
+}
+
+// 채팅 페이지 초기화
+function initializeChatPage() {
+  if (!input || !btn || !chat || !window.socket) return;
+
+  // 이벤트 리스너 등록
+  input.addEventListener("input", () => checkInput(input));
+  btn.addEventListener("click", sendMessage);
+  input.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  });
+
+  // 랜덤 매칭 요청
+  if (randomBtn) {
+    randomBtn.addEventListener("click", () => {
+      window.socket.emit("join-random");
+      randomBtn.disabled = true;
+    });
+  }
+
+  // 랜덤 매칭 나가기
+  if (leaveBtn) {
+    leaveBtn.addEventListener("click", () => {
+      window.socket.emit("leave-random");
+      currentRoom = "default";
+      lastRenderedDate = null;
+      leaveBtn.style.display = "none";
+      randomBtn.style.display = "inline-block";
+      randomBtn.disabled = false;
+      if (titleEl) titleEl.textContent = "💬 Free chat";
+    });
+  }
+
+  // Socket.IO 이벤트 리스너 설정
+  window.socket.on("connect", () => {
+    if (currentRoom === "default") {
+      window.socket.emit("requestHistory", "default");
+    }
+  });
+
+  window.socket.on("setNickname", (name) => {
+    nickname = name;
+    if (myNicknameEl) {
+      myNicknameEl.textContent = `My nickname: ${nickname}`;
+    }
+    if (input) {
+      input.disabled = false;
+      input.focus();
+    }
+    if (btn) {
+      btn.disabled = true;
+    }
+  });
+
+  window.socket.on("loadHistory", (history) => {
+    clearChat();
+    history.forEach(addMessage);
+  });
+
+  window.socket.on("message", (msg) => {
+    if (msg.room === currentRoom || (!msg.room && currentRoom === "default")) {
+      addMessage(msg);
+    }
+  });
+
+  window.socket.on("userCount", (count) => {
+    if (userCountEl) {
+      userCountEl.textContent = `${count}`;
+    }
+  });
+
+  window.socket.on("random-wait", () => {
+    showStatus("🔎 Finding a random chat partner...");
+  });
+
+  window.socket.on("random-start", ({ room }) => {
+    showStatus("✅ Match found! Entering the room...");
+    setTimeout(() => {
+      currentRoom = room;
+      lastRenderedDate = null;
+
+      if (randomBtn) randomBtn.disabled = true;
+      if (leaveBtn) leaveBtn.style.display = "inline-block";
+      if (randomBtn) randomBtn.style.display = "none";
+      if (statusBox) statusBox.style.display = "none";
+      if (titleEl) titleEl.textContent = "💬 Ran-chat";
+    }, 1000);
+  });
+
+  // 초기 상태 설정
+  checkInput(input);
+}
+
+// 페이지 로드 완료 후 초기화
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeChatPage);
+} else {
+  initializeChatPage();
 }

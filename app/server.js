@@ -20,7 +20,8 @@ app.use(cors());
 app.use(express.json());
 
 app.use(express.static('web/public')); // 정적 파일 제공
-app.use('/api', boardRoutes); // board.js - API 라우트 연결
+boardRoutes.setSocketIO(io);
+app.use('/api', boardRoutes.router); // board.js - API 라우트 연결
 console.log("✅ boardRoutes 로딩 테스트:", boardRoutes);
 
 // ✅ MongoDB 연결
