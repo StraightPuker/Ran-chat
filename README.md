@@ -140,3 +140,6 @@ docker-compose up -d
 - 개발 환경: `http://localhost:80`
 - EC2 프로덕션 환경: http://43.200.170.238/
 - BCS 프로덕션 환경: http://210.109.54.76/
+
+📌 기술 참고
+이 애플리케이션의 설계와 구현에는 OpenAI의 [ChatGPT](https://chat.openai.com/)와 AI 기반 개발 환경인 [Cursor](https://www.cursor.so/)가 적극 활용되었습니다.
