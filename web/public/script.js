@@ -18,7 +18,13 @@ let currentRoom = "default"; // 자유 채팅방 기본값
 // HTML에서 직접 호출되는 함수
 function checkInput(inputElement) {
   if (!inputElement || !btn) return;
-  btn.disabled = !inputElement.value.trim();
+  const hasValue = !!inputElement.value.trim();
+  btn.disabled = !hasValue;
+  if (hasValue) {
+    btn.classList.add("active");
+  } else {
+    btn.classList.remove("active");
+  }
 }
 
 function clearChat() {
@@ -188,6 +194,11 @@ function initializeChatPage() {
       if (randomBtn) randomBtn.style.display = "none";
       if (statusBox) statusBox.style.display = "none";
       if (titleEl) titleEl.textContent = "💬 Ran-chat";
+      if (input) {
+        input.disabled = false;
+        input.focus();
+        checkInput(input);
+      }
     }, 1000);
   });
 
